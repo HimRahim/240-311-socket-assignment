@@ -1,5 +1,4 @@
 const net = require('net');
-const prompt = require('prompt');
 const delay = require('delay');
 
 const HOST = 'localhost';
@@ -13,14 +12,14 @@ client.connect(PORT, HOST, () => {
 
 client.on('data', (data) => {
   console.log(`Client received: ${data}`);
-  if (data == 'game has already begun') client.destroy();
-  else if (data == 'prepare for game') client.write('Ready');
+  if (data == 'game has already begun') client.destroy(); //ถ้ามีการเชื่อมต่อหลังจากเริ่มเกมไปแล้วให้ client disconnect
+  else if (data == 'prepare for game') client.write('Ready'); 
   else if (
     data.includes('You win') ||
     data.includes('You lose') ||
-    data.includes('Draw')
+    data.includes('Draw') 
   ) {
-    client.write('Bye');
+    client.write('Bye'); // disconnect เมื่อจบเกม
     client.destroy();
   } else if (
     data.includes('Your turn') ||
@@ -28,7 +27,7 @@ client.on('data', (data) => {
   ) {
     (async () => {
       await delay(1000);
-      client.write(`${Math.floor(Math.random() * 9)}`);
+      client.write(`${Math.floor(Math.random() * 9)}`); // ระหว่างเกมให้ client ที่รับ 'You turn' สุ่มเลขตำแหน่งของตาราง และส่งให้กับ server
     })();
   }
 });

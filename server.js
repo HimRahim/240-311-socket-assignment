@@ -23,7 +23,7 @@ let renderedBoard = `
   `;
 
 server.on('connection', (socket) => {
-  if (sockets.length == 2) {
+  if (sockets.length == 2) { //reject client ที่เชื่อมต่อหลังจากเกมเริ่ม
     socket.write('the game has already begun');
     return;
   }
@@ -42,19 +42,17 @@ server.on('connection', (socket) => {
   socket.on('data', (data) => {
     console.log(`Client ${clientAddress}: ${data}`);
     switch (phase) {
-      case 1:
-        if (Object.keys(players).length < 2) socket.write(`wait for other player`);
+      case 1: // เฟสแรกคือรอให้ client มาเชื่อมต่อให้ครบ 2 client
+        if (Object.keys(players).length < 2)
+          socket.write(`wait for other player`);
         if (Object.keys(players).length == 2) {
-          // sockets.forEach((sock) => {
-          //   sock.write('prepare for game');
-          // });
           players[`player${1}`].write('prepare for game');
           players[`player${2}`].write('prepare for game');
           phase += 1;
         }
         break;
 
-      case 2:
+      case 2: // เฟส 2 คือเมื่อมี client มาเชื่อมต่อครบ 2 client ก็ทำการ broadcast ตารางและเริ่มเกม
         if (data == 'Ready') {
           players[`player${currentPlayer}`].write('Your turn');
         }
@@ -62,7 +60,7 @@ server.on('connection', (socket) => {
         players[`player${2}`].write(renderedBoard);
         phase += 1;
         break;
-      case 3:
+      case 3: // เฟส 3 คือให้ client แต่ละตัวส่งตำแหน่งของตารางที่ว่างให้ server เป็นฝ่าย update ตาราง
         if (parseInt(data) >= 0 && parseInt(data) <= 8) {
           if (isConflict(parseInt(data))) {
             players[`player${currentPlayer}`].write('Enter available position');
@@ -110,7 +108,7 @@ server.on('connection', (socket) => {
           }
         }
         break;
-      case 4:
+      case 4: // เฟส 4 คือจบเกมและทำการล้างค่าต่างๆ และกลับไปอยู่ใน phase 1 เพื่อรอเริ่มเกมต่อไป
         (async () => {
           await clearBoard();
           renderedBoard = reRenderBoard();
@@ -286,4 +284,4 @@ const isBoardFilled = () => {
 
 const clearBoard = async () => {
   board = ['-', '-', '-', '-', '-', '-', '-', '-', '-'];
-}
+};
